@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.6)
 Project(mkxp)
 
 ## Setup options ##
@@ -18,6 +18,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 IF("${CMAKE_SYSTEM}" MATCHES "Linux")
 	SET(LINUX ON)
 ENDIF()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    SET(ANDROID ON)
+endif()
+
 
 IF(WORKDIR_CURRENT)
 	list(APPEND DEFINES
@@ -60,8 +65,9 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 ## Locate core libs ##
 
+if(!ANDROID)
 find_package(PkgConfig REQUIRED)
-
+endif()
 if (EXTERNAL_LIB_PATH)
 	set(CMAKE_PREFIX_PATH ${EXTERNAL_LIB_PATH})
 	
@@ -83,6 +89,16 @@ if (EXTERNAL_LIB_PATH)
 	endif()
 endif()
 
+if(ANDROID)
+    set(SIGCXX_LIBRARY_DIRS ../libsigc++/sigc++)
+    set(PIXMAN_LIBRARY_DIRS  ../pixman)
+#    pkg_search_module(PHYSFS        REQUIRED physfs>=2.1)
+#    pkg_search_module(VORBISFILE    REQUIRED vorbisfile)
+#    pkg_search_module(SDL2          REQUIRED sdl2)
+#    pkg_search_module(SDL2_TTF      REQUIRED SDL2_ttf)
+#    pkg_search_module(SDL2_IMAGE    REQUIRED SDL2_image)
+#    pkg_search_module(SDL_SOUND     REQUIRED SDL_sound)
+    ELSE()
 pkg_check_modules(SIGCXX        REQUIRED sigc++-2.0)
 pkg_check_modules(PIXMAN        REQUIRED pixman-1)
 pkg_check_modules(PHYSFS        REQUIRED physfs>=2.1)
@@ -91,10 +107,10 @@ pkg_check_modules(SDL2          REQUIRED sdl2)
 pkg_check_modules(SDL2_TTF      REQUIRED SDL2_ttf)
 pkg_check_modules(SDL2_IMAGE    REQUIRED SDL2_image)
 pkg_check_modules(SDL_SOUND     REQUIRED SDL_sound)
-
-find_package(Boost 1.49 COMPONENTS program_options REQUIRED)
-find_package(OpenAL REQUIRED)
-find_package(ZLIB REQUIRED)
+ENDIF()
+#find_package(Boost 1.49 COMPONENTS program_options REQUIRED)
+#find_package(OpenAL REQUIRED)
+#find_package(ZLIB REQUIRED)
 
 ## Setup main source ##
 
@@ -295,7 +311,7 @@ source_group("Embedded Source" FILES ${EMBEDDED_INPUT} ${EMBEDDED_SOURCE})
 
 if (BINDING STREQUAL "MRI")
 	set(MRIVERSION "2.1" CACHE STRING "Version of MRI to link with")
-	pkg_check_modules(MRI REQUIRED ruby-${MRIVERSION})
+#	pkg_check_modules(MRI REQUIRED ruby-${MRIVERSION})
 	list(APPEND DEFINES
 		BINDING_MRI
 	)
